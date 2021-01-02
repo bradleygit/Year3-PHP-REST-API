@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataSource name="chi2018db">
+  <database-model serializer="dbm" dbms="SQLITE" family-id="SQLITE" format-version="4.19">
+    <root id="1">
+      <ServerVersion>3.31.1</ServerVersion>
+    </root>
+    <schema id="2" parent="1" name="main">
+      <Current>1</Current>
+    </schema>
+    <collation id="3" parent="1" name="BINARY"/>
+    <collation id="4" parent="1" name="NOCASE"/>
+    <collation id="5" parent="1" name="RTRIM"/>
+    <table id="6" parent="2" name="authors"/>
+    <table id="7" parent="2" name="content"/>
+    <table id="8" parent="2" name="content_authors"/>
+    <table id="9" parent="2" name="rooms"/>
+    <table id="10" parent="2" name="session_types"/>
+    <table id="11" parent="2" name="sessions"/>
+    <table id="12" parent="2" name="sessions_content"/>
+    <table id="13" parent="2" name="slots"/>
+    <table id="14" parent="2" name="sqlite_master">
+      <System>1</System>
+    </table>
+    <table id="15" parent="2" name="users"/>
+    <column id="16" parent="6" name="authorId">
+      <Position>1</Position>
+      <DataType>INT|0s</DataType>
+    </column>
+    <column id="17" parent="6" name="name">
+      <Position>2</Position>
+      <DataType>TEXT|0s</DataType>
+    </column>
+    <index id="18" parent="6" name="sqlite_autoindex_authors_1">
+      <NameSurrogate>1</NameSurrogate>
+      <ColNames>authorId</ColNames>
+      <ColumnCollations></ColumnCollations>
+      <Unique>1</Unique>
+    </index>
+    <key id="19" parent="6">
+      <ColNames>authorId</ColNames>
+      <Primary>1</Primary>
+      <UnderlyingIndexName>sqlite_autoindex_authors_1</UnderlyingIndexName>
+    </key>
+    <column id="20" parent="7" name="contentId">
+      <Position>1</Position>
+      <DataType>INT|0s</DataType>
+    </column>
+    <column id="21" parent="7" name="title">
+      <Position>2</Position>
+      <DataType>TEXT|0s</DataType>
+    </column>
+    <column id="22" parent="7" name="abstract">
+      <Position>3</Position>
+      <DataType>TEXT|0s</DataType>
+    </column>
+    <column id="23" parent="7" name="award">
+      <Position>4</Position>
+      <DataType>TEXT|0s</DataType>
+    </column>
+    <index id="24" parent="7" name="sqlite_autoindex_content_1">
+      <NameSurrogate>1</NameSurrogate>
+      <ColNames>contentId</ColNames>
+      <ColumnCollations></ColumnCollations>
+      <Unique>1</Unique>
+    </index>
+    <key id="25" parent="7">
+      <ColNames>contentId</ColNames>
+      <Primary>1</Primary>
+      <UnderlyingIndexName>sqlite_autoindex_content_1</UnderlyingIndexName>
+    </key>
+    <column id="26" parent="8" name="contentId">
+      <Position>1</Position>
+      <DataType>INT|0s</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <column id="27" parent="8" name="authorId">
+      <Position>2</Position>
+      <DataType>INT|0s</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <column id="28" parent="8" name="authorInst">
+      <Position>3</Position>
+      <DataType>TEXT|0s</DataType>
+    </column>
+    <foreign-key id="29" parent="8">
+      <ColNames>contentId</ColNames>
+      <RefTableName>content</RefTableName>
+      <RefColNames>contentId</RefColNames>
+    </foreign-key>
+    <foreign-key id="30" parent="8">
+      <ColNames>authorId</ColNames>
+      <RefTableName>authors</RefTableName>
+      <RefColNames>authorId</RefColNames>
+    </foreign-key>
+    <column id="31" parent="9" name="roomId">
+      <Position>1</Position>
+      <DataType>INT|0s</DataType>
+    </column>
+    <column id="32" parent="9" name="name">
+      <Position>2</Position>
+      <DataType>TEXT|0s</DataType>
+    </column>
+    <index id="33" parent="9" name="sqlite_autoindex_rooms_1">
+      <NameSurrogate>1</NameSurrogate>
+      <ColNames>roomId</ColNames>
+      <ColumnCollations></ColumnCollations>
+      <Unique>1</Unique>
+    </index>
+    <key id="34" parent="9">
+      <ColNames>roomId</ColNames>
+      <Primary>1</Primary>
+      <UnderlyingIndexName>sqlite_autoindex_rooms_1</UnderlyingIndexName>
+    </key>
+    <column id="35" parent="10" name="typeId">
+      <Position>1</Position>
+      <DataType>INT|0s</DataType>
+    </column>
+    <column id="36" parent="10" name="name">
+      <Position>2</Position>
+      <DataType>TEXT|0s</DataType>
+    </column>
+    <index id="37" parent="10" name="sqlite_autoindex_session_types_1">
+      <NameSurrogate>1</NameSurrogate>
+      <ColNames>typeId</ColNames>
+      <ColumnCollations></ColumnCollations>
+      <Unique>1</Unique>
+    </index>
+    <key id="38" parent="10">
+      <ColNames>typeId</ColNames>
+      <Primary>1</Primary>
+      <UnderlyingIndexName>sqlite_autoindex_session_types_1</UnderlyingIndexName>
+    </key>
+    <column id="39" parent="11" name="sessionId">
+      <Position>1</Position>
+      <DataType>INT|0s</DataType>
+    </column>
+    <column id="40" parent="11" name="name">
+      <Position>2</Position>
+      <DataType>TEXT|0s</DataType>
+    </column>
+    <column id="41" parent="11" name="typeId">
+      <Position>3</Position>
+      <DataType>INT|0s</DataType>
+    </column>
+    <column id="42" parent="11" name="roomId">
+      <Position>4</Position>
+      <DataType>INT|0s</DataType>
+    </column>
+    <column id="43" parent="11" name="chairId">
+      <Position>5</Position>
+      <DataType>INT|0s</DataType>
+    </column>
+    <column id="44" parent="11" name="slotId">
+      <Position>6</Position>
+      <DataType>INT|0s</DataType>
+    </column>
+    <index id="45" parent="11" name="sqlite_autoindex_sessions_1">
+      <NameSurrogate>1</NameSurrogate>
+      <ColNames>sessionId</ColNames>
+      <ColumnCollations></ColumnCollations>
+      <Unique>1</Unique>
+    </index>
+    <key id="46" parent="11">
+      <ColNames>sessionId</ColNames>
+      <Primary>1</Primary>
+      <UnderlyingIndexName>sqlite_autoindex_sessions_1</UnderlyingIndexName>
+    </key>
+    <foreign-key id="47" parent="11">
+      <ColNames>typeId</ColNames>
+      <RefTableName>session_types</RefTableName>
+      <RefColNames>typeId</RefColNames>
+    </foreign-key>
+    <foreign-key id="48" parent="11">
+      <ColNames>roomId</ColNames>
+      <RefTableName>rooms</RefTableName>
+      <RefColNames>roomId</RefColNames>
+    </foreign-key>
+    <foreign-key id="49" parent="11">
+      <ColNames>chairId</ColNames>
+      <RefTableName>authors</RefTableName>
+      <RefColNames>authorId</RefColNames>
+    </foreign-key>
+    <foreign-key id="50" parent="11">
+      <ColNames>slotId</ColNames>
+      <RefTableName>slots</RefTableName>
+      <RefColNames>slotId</RefColNames>
+    </foreign-key>
+    <column id="51" parent="12" name="sessionId">
+      <Position>1</Position>
+      <DataType>INT|0s</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <column id="52" parent="12" name="contentId">
+      <Position>2</Position>
+      <DataType>INT|0s</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <foreign-key id="53" parent="12">
+      <ColNames>sessionId</ColNames>
+      <RefTableName>sessions</RefTableName>
+      <RefColNames>sessionId</RefColNames>
+    </foreign-key>
+    <foreign-key id="54" parent="12">
+      <ColNames>contentId</ColNames>
+      <RefTableName>content</RefTableName>
+      <RefColNames>contentId</RefColNames>
+    </foreign-key>
+    <column id="55" parent="13" name="slotId">
+      <Position>1</Position>
+      <DataType>INT|0s</DataType>
+    </column>
+    <column id="56" parent="13" name="type">
+      <Position>2</Position>
+      <DataType>TEXT|0s</DataType>
+    </column>
+    <column id="57" parent="13" name="dayInt">
+      <Position>3</Position>
+      <DataType>INT|0s</DataType>
+    </column>
+    <column id="58" parent="13" name="dayString">
+      <Position>4</Position>
+      <DataType>TEXT|0s</DataType>
+    </column>
+    <column id="59" parent="13" name="startHour">
+      <Position>5</Position>
+      <DataType>INT|0s</DataType>
+    </column>
+    <column id="60" parent="13" name="startMinute">
+      <Position>6</Position>
+      <DataType>INT|0s</DataType>
+    </column>
+    <column id="61" parent="13" name="endHour">
+      <Position>7</Position>
+      <DataType>INT|0s</DataType>
+    </column>
+    <column id="62" parent="13" name="endMinute">
+      <Position>8</Position>
+      <DataType>INT|0s</DataType>
+    </column>
+    <index id="63" parent="13" name="sqlite_autoindex_slots_1">
+      <NameSurrogate>1</NameSurrogate>
+      <ColNames>slotId</ColNames>
+      <ColumnCollations></ColumnCollations>
+      <Unique>1</Unique>
+    </index>
+    <key id="64" parent="13">
+      <ColNames>slotId</ColNames>
+      <Primary>1</Primary>
+      <UnderlyingIndexName>sqlite_autoindex_slots_1</UnderlyingIndexName>
+    </key>
+    <column id="65" parent="14" name="type">
+      <Position>1</Position>
+      <DataType>text|0s</DataType>
+    </column>
+    <column id="66" parent="14" name="name">
+      <Position>2</Position>
+      <DataType>text|0s</DataType>
+    </column>
+    <column id="67" parent="14" name="tbl_name">
+      <Position>3</Position>
+      <DataType>text|0s</DataType>
+    </column>
+    <column id="68" parent="14" name="rootpage">
+      <Position>4</Position>
+      <DataType>int|0s</DataType>
+    </column>
+    <column id="69" parent="14" name="sql">
+      <Position>5</Position>
+      <DataType>text|0s</DataType>
+    </column>
+    <column id="70" parent="15" name="username">
+      <Position>1</Position>
+      <DataType>TEXT|0s</DataType>
+    </column>
+    <column id="71" parent="15" name="email">
+      <Position>2</Position>
+      <DataType>TEXT|0s</DataType>
+    </column>
+    <column id="72" parent="15" name="admin">
+      <Position>3</Position>
+      <DataType>INT|0s</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <column id="73" parent="15" name="password">
+      <Position>4</Position>
+      <DataType>TEXT|0s</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <index id="74" parent="15" name="sqlite_autoindex_users_1">
+      <NameSurrogate>1</NameSurrogate>
+      <ColNames>username</ColNames>
+      <ColumnCollations></ColumnCollations>
+      <Unique>1</Unique>
+    </index>
+    <index id="75" parent="15" name="sqlite_autoindex_users_2">
+      <NameSurrogate>1</NameSurrogate>
+      <ColNames>email</ColNames>
+      <ColumnCollations></ColumnCollations>
+      <Unique>1</Unique>
+    </index>
+    <key id="76" parent="15">
+      <ColNames>username</ColNames>
+      <UnderlyingIndexName>sqlite_autoindex_users_1</UnderlyingIndexName>
+    </key>
+    <key id="77" parent="15">
+      <ColNames>email</ColNames>
+      <UnderlyingIndexName>sqlite_autoindex_users_2</UnderlyingIndexName>
+    </key>
+  </database-model>
+</dataSource>
