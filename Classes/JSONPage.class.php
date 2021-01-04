@@ -63,7 +63,8 @@ class JSONPage
 
     private function json_error()
     {
-        $msg = array("Message" => "Error, no such endpoint");
+
+        $msg = array("status" => "404","message" => "Error, endpoint not found");
         return json_encode($msg);
     }
 
@@ -78,6 +79,7 @@ class JSONPage
     {
         $query = "SELECT type,dayInt,dayString,startHour,startMinute,endHour,endMinute from slots";
         $params = [];
+
         if (isset($_REQUEST['day'])) {
             $query .= " WHERE dayString LIKE :term";
             $term = $this->sanitiseString("%" . $_REQUEST['day'] . "%");
