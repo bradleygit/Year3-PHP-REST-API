@@ -50,7 +50,7 @@ MYNAV;
      * generated from routes.ini
      */
     private function set_navItems() {
-        $ini['routes'] = parse_ini_file("config/routes.ini",true);
+        $ini['routes'] = parse_ini_file("Config/routes.ini",true);
         foreach ($ini['routes'] as $key => $value) {
             if ($key != "error") {
                 $this->navItems[$key] = $key."/";

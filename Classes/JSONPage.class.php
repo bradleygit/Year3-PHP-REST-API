@@ -28,6 +28,12 @@ class JSONPage
             case 'content':
                 $this->page = $this->json_content();
                 break;
+            case 'login':
+                $this->page = $this->handleLogin();
+                break;
+            case 'update':
+                $this->page = $this->json_update();
+                break;
             case 'rooms':
                 $this->page = $this->json_receive("SELECT roomId,name FROM rooms");
                 break;
@@ -85,22 +91,21 @@ class JSONPage
             $query .= " WHERE startHour = :termA and  startMinute = :termB";
             $numberA = $_REQUEST['timestart'];
             $numberB = $_REQUEST['timestart'];
-            if(strlen($_REQUEST['timestart']) >=4){
-                $numberA = $this->trimNumbers($numberA,true);
-                $numberB =  $this->trimNumbers($numberB,false);
+            if (strlen($_REQUEST['timestart']) >= 4) {
+                $numberA = $this->trimNumbers($numberA, true);
+                $numberB = $this->trimNumbers($numberB, false);
             }
             $numberATerm = $this->sanitiseString($numberA);
             $numberBTerm = $this->sanitiseString($numberB);
             $params = ["termA" => $numberATerm, "termB" => $numberBTerm];
 
-        }
-        elseif (isset($_REQUEST['timeend'])) {
+        } elseif (isset($_REQUEST['timeend'])) {
             $query .= " WHERE endHour = :termA and  endMinute = :termB";
             $numberA = $_REQUEST['timeend'];
             $numberB = $_REQUEST['timeend'];
-            if(strlen($_REQUEST['timeend']) >=4){
-                $numberA = $this->trimNumbers($numberA,true);
-                $numberB =  $this->trimNumbers($numberB,false);
+            if (strlen($_REQUEST['timeend']) >= 4) {
+                $numberA = $this->trimNumbers($numberA, true);
+                $numberB = $this->trimNumbers($numberB, false);
             }
 
             $numberATerm = $this->sanitiseString($numberA);
@@ -116,16 +121,14 @@ class JSONPage
             $numStringFormat = $numberString[0] . $numberString[1];
             if ($numStringFormat < 10 && strlen($numStringFormat) >= 2) {
                 return $numStringFormat[1]; //take 0 off start e.g. 01
-            }
-            else{
+            } else {
                 return $numStringFormat;
             }
         } else {
             $numStringFormat = $numberString[2] . $numberString[3];
             if ($numStringFormat < 10 && strlen($numStringFormat) >= 2) {
                 return $numStringFormat[1];//take 0 off end eg 01
-            }
-            else{
+            } else {
                 return $numStringFormat;
             }
         }
@@ -158,12 +161,74 @@ class JSONPage
             $term = $this->sanitiseString("%" . $_REQUEST['search'] . "%");
             $params = ["term" => $term];
         } elseif (isset($_REQUEST['id'])) {
-                $query .= " WHERE authorId = :term";
-                $term = $this->sanitiseNum($_REQUEST['id']);
-                $params = ["term" => $term];
+            $query .= " WHERE authorId = :term";
+            $term = $this->sanitiseNum($_REQUEST['id']);
+            $params = ["term" => $term];
         }
 
         return ($this->recordset->getJSONRecordSet($query, $params));
+    }
+
+    /**
+     * json_login
+     *
+     * @todo this method can be improved
+     */
+    private function handleLogin()
+    {
+
+        $msg = "Invalid request. Username and password required";
+        $status = 400;
+        $token = null;
+        $input = json_decode(file_get_contents("php://input"));
+
+        if ($input) {
+            if (isset($input->email) && isset($input->password)) {
+                $query = "SELECT username, password FROM users WHERE email LIKE :email";
+                $params = ["email" => $input->email];
+                $res = json_decode($this->recordset->getJSONRecordSet($query, $params), true);
+                $password = ($res['count']) ? $res['data'][0]['password'] : null;
+
+                if (password_verify($input->password, $password)) {
+                    $msg = "User authorised. Welcome " . $res['data'][0]['username'];
+                    $status = 200;
+                    $token = "1234";
+                } else {
+                    $msg = "username or password are invalid";
+                    $status = 401;
+                }
+            }
+        }
+
+        return json_encode(array("status" => $status, "message" => $msg, "token" => $token));
+    }
+
+    /**
+     * json_update
+     *
+     * @todo this method can be improved
+     */
+    private function json_update()
+    {
+        $input = json_decode(file_get_contents("php://input"));
+
+        if (!$input) {
+            return json_encode(array("status" => 400, "message" => "Invalid request"));
+        }
+        if (is_null($input->token)) {
+            return json_encode(array("status" => 401, "message" => "Not authorised"));
+        }
+        if ($input->token !== "1234") {
+            return json_encode(array("status" => 401, "message" => "Not authorised"));
+        }
+        if (is_null($input->name) || is_null($input->sessionID)) {
+            return json_encode(array("status" => 400, "message" => "Invalid request"));
+        }
+
+        $query = "UPDATE sessions SET name = :name WHERE film_id = :sessionID";
+        $params = ["name" => $input->name, "sessionID" => $input->sessionID];
+        $this->recordset->getJSONRecordSet($query, $params);
+        return json_encode(array("status" => 200, "message" => "ok"));
     }
 
 //an arbitrary max length of 20 is set
