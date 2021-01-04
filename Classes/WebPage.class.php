@@ -2,7 +2,7 @@
 /**
  * Creates an HTML webpage using the given params
  *
- * @author YOUR NAME
+ * @author Bradley Slater
  *
  */
 abstract class WebPage {

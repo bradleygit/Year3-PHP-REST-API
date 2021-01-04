@@ -1,7 +1,7 @@
 <?php
 /**
  * Return a JSON recordset
- * @author YOUR NAME HERE
+ * @author Bradley Slater
  */
 class JSONRecordSet extends RecordSet {
     /**

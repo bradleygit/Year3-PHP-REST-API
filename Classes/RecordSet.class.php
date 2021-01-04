@@ -2,7 +2,7 @@
 /**
  * abstract class that creates a database connection and returns a recordset
  * Follows the recordset pattern
- * @author YOUR NAME HERE
+ * @author Bradley Slater
  */
 abstract class RecordSet {
     protected $conn;

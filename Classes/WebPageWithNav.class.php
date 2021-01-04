@@ -1,6 +1,7 @@
 <?php
 /**
  * Create a webpage with a navbar menu
+ * @author Bradley Slater
  */
 class WebPageWithNav extends WebPage {
     private $nav;

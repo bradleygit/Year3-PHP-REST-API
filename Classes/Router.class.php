@@ -2,7 +2,7 @@
 /**
  * This router will return a main, documentation or about page
  *
- * @author YOUR NAME
+ * @author Bradley Slater
  *
  */
 class Router {
@@ -40,6 +40,8 @@ class Router {
         $this->page = new WebPageWithNav($pageInfo['title'], $pageInfo['heading1'], $pageInfo['footer']);
         $this->page->addToBody($pageInfo['text']);
     }
+
+
 
     public function get_type() {
         return $this->type ;

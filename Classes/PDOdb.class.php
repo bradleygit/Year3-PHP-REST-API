@@ -2,7 +2,7 @@
 /**
  * PDO (PHP Data Objects) Database Connection
  * Create a singleton SQLite database connection
- * @author John Rooksby (using the module tutor's name will mean he gets marks for your work instead of you)
+ * @author Bradley Slater
  */
 class PDOdb {
     private static $dbConnection = null;
