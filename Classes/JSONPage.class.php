@@ -64,7 +64,7 @@ class JSONPage
     private function json_error()
     {
 
-        $msg = array("status" => "404","message" => "Error, endpoint not found");
+        $msg = array("status" => "404", "message" => "Error, endpoint not found");
         return json_encode($msg);
     }
 
@@ -184,23 +184,23 @@ class JSONPage
         $token = null;
         $input = json_decode(file_get_contents("php://input"));
 
-        if ($input) {
-            if (isset($input->email) && isset($input->password)) {
-                $query = "SELECT username, password FROM users WHERE email LIKE :email";
-                $params = ["email" => $input->email];
-                $res = json_decode($this->recordset->getJSONRecordSet($query, $params), true);
-                $password = ($res['count']) ? $res['data'][0]['password'] : null;
 
-                if (password_verify($input->password, $password)) {
-                    $msg = "User authorised. Welcome " . $res['data'][0]['username'];
-                    $status = 200;
-                    $token = TOKEN;
-                } else {
-                    $msg = "username or password are invalid";
-                    $status = 401;
-                }
+        if (isset($input->username) && isset($input->password)) {
+            $query = "SELECT email, password FROM users WHERE username = :username";
+            $params = ["username" => $input->username];
+            $res = json_decode($this->recordset->getJSONRecordSet($query, $params), true);
+            $password = ($res['count']) ? $res['data'][0]['password'] : null;
+
+            if (password_verify($input->password, $password)) {
+                $msg = "User authorised. Welcome " . $input->username;
+                $status = 200;
+                $token = TOKEN;
+            } else {
+                $msg = "username or password are invalid";
+                $status = 401;
             }
         }
+
 
         return json_encode(array("status" => $status, "message" => $msg, "token" => $token));
     }
@@ -220,7 +220,7 @@ class JSONPage
         if (is_null($input->token)) {
             return json_encode(array("status" => 401, "message" => "Not authorised"));
         }
-        if ($input->token !== "1234") {
+        if ($input->token !== TOKEN){
             return json_encode(array("status" => 401, "message" => "Not authorised"));
         }
         if (is_null($input->name) || is_null($input->sessionID)) {
