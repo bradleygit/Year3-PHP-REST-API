@@ -32,7 +32,7 @@ class JSONPage
                 $this->page = $this->json_receive("SELECT roomId,name FROM rooms");
                 break;
             case 'schedule':
-                $this->page = $this->json_schedule("SELECT typeId,name FROM session_types");
+                $this->page = $this->json_schedule();
                 break;
             case 'sessions_content':
                 $this->page = $this->json_receive("SELECT sessionId,contentId FROM sessions_content");
@@ -51,7 +51,7 @@ class JSONPage
 
     private function json_welcome()
     {
-        $msg = array("Message" => "Welcome", "Author" => "Bradley Slater","EndPoints"=>array("authors","content","rooms","session_types","sessions_content","sessions","slots"));
+        $msg = array("Message" => "Welcome", "Author" => "Bradley Slater", "EndPoints" => array("authors", "content", "rooms", "session_types", "sessions_content", "sessions", "slots"));
         return json_encode($msg);
     }
 
@@ -62,49 +62,85 @@ class JSONPage
     }
 
 
-    private function json_receive($query){
+    private function json_receive($query)
+    {
         $params = [];
         return ($this->recordset->getJSONRecordSet($query, $params));
     }
 
-    private function json_schedule()    {
-        $query ="SELECT type,dayInt,dayString,startHour,startMinute,endHour,endMinute from slots";
+    private function json_schedule()
+    {
+        $query = "SELECT type,dayInt,dayString,startHour,startMinute,endHour,endMinute from slots";
         $params = [];
         if (isset($_REQUEST['day'])) {
             $query .= " WHERE dayString LIKE :term";
-            $term = $this->sanitiseString("%".$_REQUEST['day']."%");
+            $term = $this->sanitiseString("%" . $_REQUEST['day'] . "%");
             $params = ["term" => $term];
-        }
-        elseif (isset($_REQUEST['type'])) {
-                $query .= " WHERE type = :term";
-                $term = $this->sanitiseString($_REQUEST['type']);
-                $params = ["term" => $term];
+        } elseif (isset($_REQUEST['type'])) {
+            $query .= " WHERE type = :term";
+            $term = $this->sanitiseString($_REQUEST['type']);
+            $params = ["term" => $term];
+
+        } elseif (isset($_REQUEST['timestart'])) {
+            $query .= " WHERE startHour = :termA and  startMinute = :termB";
+            $numberA = $_REQUEST['timestart'];
+            $numberB = $_REQUEST['timestart'];
+            if(strlen($_REQUEST['timestart']) >=4){
+                $numberA = $this->trimNumbers($numberA,true);
+                $numberB =  $this->trimNumbers($numberB,false);
+            }
+            $numberATerm = $this->sanitiseString($numberA);
+            $numberBTerm = $this->sanitiseString($numberB);
+            $params = ["termA" => $numberATerm, "termB" => $numberBTerm];
 
         }
-        elseif (isset($_REQUEST['timestart'])) {
-            $query .= " WHERE startHour like :termA and  startMinute like :termB";
-            $numberA = substr($_REQUEST['timestart'], 0, 1);
-            $numberB = substr($_REQUEST['timestart'], 1, 3);
-            $numberATerm = $this->sanitiseNum($numberA);
-            $numberBTerm = $this->sanitiseNum($numberB);
-            $params = ["termA" => $numberATerm,"termB" =>$numberBTerm];
+        elseif (isset($_REQUEST['timeend'])) {
+            $query .= " WHERE endHour = :termA and  endMinute = :termB";
+            $numberA = $_REQUEST['timeend'];
+            $numberB = $_REQUEST['timeend'];
+            if(strlen($_REQUEST['timeend']) >=4){
+                $numberA = $this->trimNumbers($numberA,true);
+                $numberB =  $this->trimNumbers($numberB,false);
+            }
 
+            $numberATerm = $this->sanitiseString($numberA);
+            $numberBTerm = $this->sanitiseString($numberB);
+            $params = ["termA" => $numberATerm, "termB" => $numberBTerm];
         }
-
         return ($this->recordset->getJSONRecordSet($query, $params));
+    }
+
+    private function trimNumbers($numberString, $isHour)
+    {
+        if ($isHour) {
+            $numStringFormat = $numberString[0] . $numberString[1];
+            if ($numStringFormat < 10 && strlen($numStringFormat) >= 2) {
+                return $numStringFormat[1]; //take 0 off start e.g. 01
+            }
+            else{
+                return $numStringFormat;
+            }
+        } else {
+            $numStringFormat = $numberString[2] . $numberString[3];
+            if ($numStringFormat < 10 && strlen($numStringFormat) >= 2) {
+                return $numStringFormat[1];//take 0 off end eg 01
+            }
+            else{
+                return $numStringFormat;
+            }
+        }
     }
 
 
     private function json_content()
     {
-        $query ="SELECT title,abstract,award FROM content";
+        $query = "SELECT title,abstract,award FROM content";
         $params = [];
         if (isset($_REQUEST['search'])) {
             $query .= " WHERE name LIKE :term";
-            $term = $this->sanitiseString("%".$_REQUEST['search']."%");
+            $term = $this->sanitiseString("%" . $_REQUEST['search'] . "%");
             $params = ["term" => $term];
-        }
-        elseif (isset($_REQUEST['id'])) {
+        } elseif (isset($_REQUEST['id'])) {
             $query .= " WHERE authorId = :term";
             $term = $this->sanitiseNum($_REQUEST['id']);
             $params = ["term" => $term];
@@ -112,32 +148,34 @@ class JSONPage
 
         return ($this->recordset->getJSONRecordSet($query, $params));
     }
+
     private function json_authors()
     {
         $query = "SELECT name FROM authors";
         $params = [];
         if (isset($_REQUEST['search'])) {
             $query .= " WHERE name LIKE :term";
-            $term = $this->sanitiseString("%".$_REQUEST['search']."%");
+            $term = $this->sanitiseString("%" . $_REQUEST['search'] . "%");
             $params = ["term" => $term];
-        } else {
-            if (isset($_REQUEST['id'])) {
+        } elseif (isset($_REQUEST['id'])) {
                 $query .= " WHERE authorId = :term";
                 $term = $this->sanitiseNum($_REQUEST['id']);
                 $params = ["term" => $term];
-            }
         }
+
         return ($this->recordset->getJSONRecordSet($query, $params));
     }
 
 //an arbitrary max length of 20 is set
-    private function sanitiseString($x) {
+    private function sanitiseString($x)
+    {
         return substr(trim(filter_var($x, FILTER_SANITIZE_STRING)), 0, 20);
     }
 
 //an arbitrary max range of 100000 is set
-    private function sanitiseNum($x) {
-        return filter_var($x, FILTER_VALIDATE_INT, array("options"=>array("min_range"=>0, "max_range"=>100000)));
+    private function sanitiseNum($x)
+    {
+        return filter_var($x, FILTER_VALIDATE_INT, array("options" => array("min_range" => 0, "max_range" => 100000)));
     }
 
     public function get_page()
@@ -145,4 +183,5 @@ class JSONPage
         return $this->page;
     }
 }
+
 ?>
