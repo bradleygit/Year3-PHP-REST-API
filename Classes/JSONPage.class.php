@@ -192,7 +192,7 @@ class JSONPage
                 if (password_verify($input->password, $password)) {
                     $msg = "User authorised. Welcome " . $res['data'][0]['username'];
                     $status = 200;
-                    $token = "1234";
+                    $token = TOKEN;
                 } else {
                     $msg = "username or password are invalid";
                     $status = 401;
