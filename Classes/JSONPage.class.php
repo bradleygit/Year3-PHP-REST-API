@@ -1,5 +1,7 @@
 <?php
 
+use Firebase\JWT\JWT;
+
 /**
  * Creates a JSON page based on the parameters
  *
@@ -190,10 +192,9 @@ class JSONPage
 
         $msg = "Invalid request. Username and password required";
         $status = 400;
-        $token = null;
         $input = json_decode(file_get_contents("php://input"));
 
-
+        $token = array();
         if (isset($input->email) && isset($input->password)) {
             $query = "SELECT username,password FROM users WHERE email = :email";
             $params = ["email" => $input->email];
@@ -203,7 +204,8 @@ class JSONPage
             if (password_verify($input->password, $password)) {
                 $msg = "User authorised. Welcome " . $input->email;
                 $status = 200;
-                $token = TOKEN;
+                $token['email'] = $input->email;
+                $token = JWT::encode($token, 'secret_server_key');
             } else {
                 $msg = "username or password are invalid";
                 $status = 401;
