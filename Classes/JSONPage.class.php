@@ -236,9 +236,8 @@ class JSONPage
             return json_encode(array("status" => 400, "message" => "Invalid request"));
         }
 
-        $query = "UPDATE sessions SET name = :name WHERE film_id = :sessionID";
-        $params = ["name" => $input->name, "sessionID" => $input->sessionID];
-        $this->recordset->getJSONRecordSet($query, $params);
+        //$params = ["name" => $input->name, "sessionID" => $input->sessionID];
+        //$this->recordset->getJSONRecordSet($query, $params);
         return json_encode(array("status" => 200, "message" => "ok"));
     }
 
