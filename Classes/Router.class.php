@@ -36,11 +36,7 @@ class Router {
         $pageInfo = isset($path, $ini['routes'][$path])
             ? $ini['routes'][$path]
             : $ini['routes']['error'];
-
         $this->page = new WebPageWithNav($pageInfo['title'], $pageInfo['heading1'], $pageInfo['footer']);
-        if($pageInfo['heading1'] == "documentation"){
-
-        }
         $this->page->addToBody($pageInfo['text']);
     }
 

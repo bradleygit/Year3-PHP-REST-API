@@ -35,7 +35,7 @@ class JSONPage
                 $this->page = $this->json_update();
                 break;
             case 'rooms':
-                $this->page = $this->json_receive("SELECT roomId,name FROM rooms");
+                $this->page = $this->json_receive();
                 break;
             case 'schedule':
                 $this->page = $this->json_schedule();
@@ -75,9 +75,18 @@ class JSONPage
         return ($this->recordset->getJSONRecordSet($query, $params));
     }
 
+    public function json_rooms(){
+        $query = "SELECT roomId,name FROM rooms";
+        if (isset($_REQUEST['roomid'])) {
+            $query .= " WHERE dayString LIKE :term";
+            $term = $this->sanitiseString("%" . $_REQUEST['day'] . "%");
+            $params = ["term" => $term];
+        }
+
+    }
     private function json_schedule()
     {
-        $query = "SELECT type,dayInt,dayString,startHour,startMinute,endHour,endMinute from slots";
+        $query = "SELECT * FROM slots LEFT JOIN sessions s on slots.slotId = s.slotId";
         $params = [];
 
         if (isset($_REQUEST['day'])) {
@@ -185,14 +194,14 @@ class JSONPage
         $input = json_decode(file_get_contents("php://input"));
 
 
-        if (isset($input->username) && isset($input->password)) {
-            $query = "SELECT email, password FROM users WHERE username = :username";
-            $params = ["username" => $input->username];
+        if (isset($input->email) && isset($input->password)) {
+            $query = "SELECT username,password FROM users WHERE email = :email";
+            $params = ["email" => $input->email];
             $res = json_decode($this->recordset->getJSONRecordSet($query, $params), true);
             $password = ($res['count']) ? $res['data'][0]['password'] : null;
 
             if (password_verify($input->password, $password)) {
-                $msg = "User authorised. Welcome " . $input->username;
+                $msg = "User authorised. Welcome " . $input->email;
                 $status = 200;
                 $token = TOKEN;
             } else {
