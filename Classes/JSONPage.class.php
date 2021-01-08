@@ -194,16 +194,19 @@ class JSONPage
         $status = 400;
         $input = json_decode(file_get_contents("php://input"));
         $token = array();
+
         if (isset($input->email) && isset($input->password)) {
             $query = "SELECT username,password FROM users WHERE email = :email";
-            $params = ["email" => $input->email];
+            $email = $this->sanitiseString($input->email);
+            $password = $this->sanitiseString($input->password);
+            $params = ["email" => $email];
             $res = json_decode($this->recordset->getJSONRecordSet($query, $params), true);
-            $password = ($res['count']) ? $res['data'][0]['password'] : null;
+            $passwordFound = ($res['count']) ? $res['data'][0]['password'] : null;
 
-            if (password_verify($input->password, $password)) {
-                $msg = "User authorised. Welcome " . $input->email;
+            if (password_verify($password, $passwordFound)) {
+                $msg = "User authorised. Welcome " . $email;
                 $status = 200;
-                $token = $this->getToken($input->email,$res['data'][0]['username']);
+                $token = $this->getToken($email,$res['data'][0]['username']);
                 $jwtKey = JWTKEY;
                 $token = JWT::encode($token, $jwtKey);
             } else {
@@ -220,9 +223,7 @@ class JSONPage
         $token['email'] = $email;
         $token['username'] = $username;
         $token['iat'] = time();
-        $timestamp = time() + 60;
-        $time = date('H:i', $timestamp);
-        $token['exp'] = $time;
+        $token['exp'] = time() + 60*60;;
         return $token;
     }
 
@@ -235,34 +236,31 @@ class JSONPage
     {
         $input = json_decode(file_get_contents("php://input"));
 
+
         if (!$input) {
             return json_encode(array("status" => 400, "message" => "Invalid request"));
         }
         if (is_null($input->token)) {
             return json_encode(array("status" => 401, "message" => "Not authorised"));
         }
-        if ($input->token !== TOKEN){
-            return json_encode(array("status" => 401, "message" => "Not authorised"));
-        }
-        if (is_null($input->name) || is_null($input->sessionID)) {
+        if (is_null($input->name) || is_null($input->sessionId)) {
             return json_encode(array("status" => 400, "message" => "Invalid request"));
         }
 
         try {
             $jwtKey = JWTKEY;
-            $tokenDecoded =  JWT::decode($input->token, $jwtKey, array('HS256'));
+            JWT::decode($input->token, $jwtKey, array('HS256'));
         }
         catch (UnexpectedValueException $e) {
             return json_encode(array("status" => 401, "message" => $e->getMessage()));
         }
 
-        $query  = "UPDATE film SET description = :description WHERE film_id = :film_id";
-        $params = ["description" => $input->description, "film_id" => $input->film_id];
-        //$res = $this->recordset->getJSONRecordSet($query, $params);
-        return json_encode(array("status" => 200, "message" => "ok"));
-        //$params = ["name" => $input->name, "sessionID" => $input->sessionID];
-        //$this->recordset->getJSONRecordSet($query, $params);
-        return json_encode(array("status" => 200, "message" => "ok"));
+        $query  = "UPDATE sessions SET name = :name WHERE sessionId = :sessionId";
+        $name = $this->sanitiseString($input->name);
+        $Id = $this->sanitiseString($input->sessionId);
+
+        $params = ["name" => $name, "sessionId" => $Id];
+        return $this->recordset->getJSONRecordSet($query, $params);
     }
 
 //an arbitrary max length of 20 is set
