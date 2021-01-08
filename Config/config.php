@@ -15,7 +15,7 @@ $ini = parse_ini_file("config.ini",true);
 define('BASEPATH', $ini['paths']['basepath']);
 define('CSSPATH', $ini['paths']['css']);
 define('DB',$ini['database']['dbname']);
-define('TOKEN',$ini['secret']['token']);
+define('JWTKEY',$ini['secret']['JWT']);
 
 set_exception_handler('exceptionHandler');
 

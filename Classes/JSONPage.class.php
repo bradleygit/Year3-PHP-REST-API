@@ -205,7 +205,10 @@ class JSONPage
                 $msg = "User authorised. Welcome " . $input->email;
                 $status = 200;
                 $token['email'] = $input->email;
-                $token = JWT::encode($token, 'secret_server_key');
+                $token['username'] = $res['data'][0]['username'];
+                $token['iat'] = time();
+                $jwtKey = JWTKEY;
+                $token = \Firebase\JWT\JWT::encode($token, $jwtKey);
             } else {
                 $msg = "username or password are invalid";
                 $status = 401;
@@ -238,6 +241,18 @@ class JSONPage
             return json_encode(array("status" => 400, "message" => "Invalid request"));
         }
 
+        try {
+            $jwtKey = JWTKEY;
+            $tokenDecoded =  JWT::decode($input->token, $jwtKey, array('HS256'));
+        }
+        catch (UnexpectedValueException $e) {
+            return json_encode(array("status" => 401, "message" => $e->getMessage()));
+        }
+
+        $query  = "UPDATE film SET description = :description WHERE film_id = :film_id";
+        $params = ["description" => $input->description, "film_id" => $input->film_id];
+        //$res = $this->recordset->getJSONRecordSet($query, $params);
+        return json_encode(array("status" => 200, "message" => "ok"));
         //$params = ["name" => $input->name, "sessionID" => $input->sessionID];
         //$this->recordset->getJSONRecordSet($query, $params);
         return json_encode(array("status" => 200, "message" => "ok"));
