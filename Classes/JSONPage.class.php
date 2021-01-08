@@ -193,7 +193,6 @@ class JSONPage
         $msg = "Invalid request. Username and password required";
         $status = 400;
         $input = json_decode(file_get_contents("php://input"));
-
         $token = array();
         if (isset($input->email) && isset($input->password)) {
             $query = "SELECT username,password FROM users WHERE email = :email";
@@ -204,11 +203,9 @@ class JSONPage
             if (password_verify($input->password, $password)) {
                 $msg = "User authorised. Welcome " . $input->email;
                 $status = 200;
-                $token['email'] = $input->email;
-                $token['username'] = $res['data'][0]['username'];
-                $token['iat'] = time();
+                $token = $this->getToken($input->email,$res['data'][0]['username']);
                 $jwtKey = JWTKEY;
-                $token = \Firebase\JWT\JWT::encode($token, $jwtKey);
+                $token = JWT::encode($token, $jwtKey);
             } else {
                 $msg = "username or password are invalid";
                 $status = 401;
@@ -217,6 +214,16 @@ class JSONPage
 
 
         return json_encode(array("status" => $status, "message" => $msg, "token" => $token));
+    }
+
+    function getToken($username,$email){
+        $token['email'] = $email;
+        $token['username'] = $username;
+        $token['iat'] = time();
+        $timestamp = time() + 60;
+        $time = date('H:i', $timestamp);
+        $token['exp'] = $time;
+        return $token;
     }
 
     /**
