@@ -10,6 +10,30 @@ header, main, footer ,h2{
     margin-right: auto;
 }
 
+h2{
+    text-align: center;
+}
+
+.required{
+    color:red;
+    padding-left: 10px;
+}
+
+.endpointAdditional{
+    padding-top:10px;
+    padding-left:10px;
+}
+.endpoint{
+    text-align: center;
+    border:solid lightblue;
+    border-radius:10px;
+    margin-top:10px;
+    display: flex;
+}
+.endpointExplain{
+    padding-left: 20px;
+}
+
 footer{
     position: fixed;
     width: 50%;
