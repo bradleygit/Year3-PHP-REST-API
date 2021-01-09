@@ -188,12 +188,8 @@ class JSONPage
             $params = ["term" => $term];
         }
         elseif (isset($_REQUEST['getsessions'])) {
-
-            $check =  $this->sanitiseString($_REQUEST['getsessions']);
-            if($check == "true"){
                 $query = "SELECT a.name as authorName,s.name as sessionName ,sl.dayString as day, sl.startHour,sl.startMinute,sl.endHour,sl.endMinute, rooms.name as roomName
                             FROM authors a left join sessions s on a.authorId = s.chairId left join rooms on s.roomId = rooms.roomId left join slots sl on s.slotId = sl.slotId";
-            }
         }
 
         return ($this->recordset->getJSONRecordSet($query, $params));
