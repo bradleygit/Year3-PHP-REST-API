@@ -67,11 +67,13 @@ class JSONPage
         return json_encode($msg);
     }
 
-    public function json_sessions(){
+    public function json_sessions()
+    {
         $query = "SELECT s.name as sessionName,a.name FROM sessions s inner join authors a on s.chairId = a.authorId ";
         $params = [];
         return ($this->recordset->getJSONRecordSet($query, $params));
     }
+
     public function json_chairs()
     {
         $query = "SELECT s.name as SessionName, a.name as AuthorName FROM sessions s INNER JOIN  authors a  ON s.chairId = a.authorId";
@@ -186,9 +188,8 @@ class JSONPage
             $query .= " WHERE authorId = :term";
             $term = $this->sanitiseNum($_REQUEST['id']);
             $params = ["term" => $term];
-        }
-        elseif (isset($_REQUEST['getsessions'])) {
-                $query = "SELECT a.name as authorName,s.name as sessionName ,sl.dayString as day, sl.startHour,sl.startMinute,sl.endHour,sl.endMinute, rooms.name as roomName
+        } elseif (isset($_REQUEST['getsessions'])) {
+            $query = "SELECT a.name as authorName,s.name as sessionName ,sl.dayString as day, sl.startHour,sl.startMinute,sl.endHour,sl.endMinute, rooms.name as roomName
                             FROM authors a left join sessions s on a.authorId = s.chairId left join rooms on s.roomId = rooms.roomId left join slots sl on s.slotId = sl.slotId";
         }
 
@@ -202,20 +203,19 @@ class JSONPage
      */
     private function handleLogin()
     {
-
-
         $input = json_decode(file_get_contents("php://input"));
         $token = array();
 
+
         if (isset($input->email) && isset($input->password)) {
-            $query = "SELECT username,password,admin FROM users WHERE email = :email";
+            $query = "SELECT username,password,admin FROM users WHERE email like :email";
             $email = $this->sanitiseString($input->email);
             $password = $this->sanitiseString($input->password);
             $params = ["email" => $email];
             $res = json_decode($this->recordset->getJSONRecordSet($query, $params), true);
             $passwordFound = ($res['count']) ? $res['data'][0]['password'] : null;
-            $adminStatus = $res['data'][0]['admin'];
             if (password_verify($password, $passwordFound)) {
+                $adminStatus = $res['data'][0]['admin'];
                 $msg = "User authorised. Welcome " . $email;
                 $status = 200;
                 $token = $this->getToken($email, $res['data'][0]['username']);
@@ -230,10 +230,10 @@ class JSONPage
         } else {
             $msg = "Invalid request. Username and password required";
             $status = 400;
-            return json_encode(array("status" => $status, "message" => $msg, "token" => $token));
+            return json_encode(array("status" => $status, "message" => $msg));
         }
-
     }
+
 
     function getToken($username, $email)
     {
