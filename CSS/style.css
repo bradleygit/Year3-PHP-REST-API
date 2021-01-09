@@ -17,11 +17,14 @@ h2{
 .required{
     color:red;
     padding-left: 10px;
+
 }
 
 .endpointAdditional{
     padding-top:10px;
     padding-left:10px;
+    float:left;
+
 }
 .endpoint{
     text-align: center;
@@ -32,6 +35,7 @@ h2{
 }
 .endpointExplain{
     padding-left: 20px;
+
 }
 
 footer{

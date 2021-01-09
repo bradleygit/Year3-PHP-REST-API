@@ -43,7 +43,7 @@ class JSONPage
                 $this->page = $this->json_schedule();
                 break;
             case 'sessions':
-                $this->page = $this->json_receive("SELECT sessionId,name,typeId,roomId,chairId,slotId FROM sessions");
+                $this->page = $this->json_sessions();
                 break;
             case 'chairs':
                 $this->page = $this->json_chairs();
@@ -67,9 +67,15 @@ class JSONPage
         return json_encode($msg);
     }
 
-    public function json_chairs(){
+    public function json_sessions(){
+        $query = "SELECT s.name as sessionName,a.name FROM sessions s inner join authors a on s.chairId = a.authorId ";
+        $params = [];
+        return ($this->recordset->getJSONRecordSet($query, $params));
+    }
+    public function json_chairs()
+    {
         $query = "SELECT s.name as SessionName, a.name as AuthorName FROM sessions s INNER JOIN  authors a  ON s.chairId = a.authorId";
-        $params =[];
+        $params = [];
         if (isset($_REQUEST['author'])) {
             $query .= " WHERE a.name like :term";
             $term = $this->sanitiseString("%" . $_REQUEST['author'] . "%");
@@ -77,15 +83,12 @@ class JSONPage
         }
         return ($this->recordset->getJSONRecordSet($query, $params));
     }
-    private function json_receive($query)
-    {
-        $params = [];
-        return ($this->recordset->getJSONRecordSet($query, $params));
-    }
 
-    public function json_rooms(){
+
+    public function json_rooms()
+    {
         $query = "SELECT name FROM rooms";
-        $params =[];
+        $params = [];
         if (isset($_REQUEST['roomid'])) {
             $query .= " WHERE roomId like :term";
             $term = $this->sanitiseString("%" . $_REQUEST['roomid'] . "%");
@@ -93,10 +96,13 @@ class JSONPage
         }
         return ($this->recordset->getJSONRecordSet($query, $params));
     }
+
     private function json_schedule()
     {
-        $query = "SELECT slots.type,slots.dayString as day,slots.startHour,slots.startMinute,slots.endHour,slots.endMinute,s.name,a.name as AuthorName
-                        FROM slots  inner JOIN sessions s on slots.slotId = s.slotId inner join authors a on s.chairId = a.authorId";
+        $query = "SELECT slots.type,slots.dayString as day,slots.startHour,slots.startMinute,slots.endHour,slots.endMinute,s.name,a.name as authorName,r.name as roomName
+                        FROM slots  inner JOIN sessions s on slots.slotId = s.slotId 
+                            inner join authors a on s.chairId = a.authorId
+                            inner join rooms r on s.roomId = r.roomId"; //lots of joins going on here !
         $params = [];
         if (isset($_REQUEST['day'])) {
             $query .= " WHERE dayString LIKE :term";
@@ -132,6 +138,7 @@ class JSONPage
             $numberBTerm = $this->sanitiseString($numberB);
             $params = ["termA" => $numberATerm, "termB" => $numberBTerm];
         }
+
         return ($this->recordset->getJSONRecordSet($query, $params));
     }
 
@@ -159,11 +166,11 @@ class JSONPage
     {
         $query = "SELECT title,abstract,award FROM content WHERE award != ''";
         $params = [];
-         if (isset($_REQUEST['search'])) {
-             $query .= "and award LIKE :term";
-             $term = $this->sanitiseString("%" . $_REQUEST['search'] . "%");
-             $params = ["term" => $term];
-         }
+        if (isset($_REQUEST['search'])) {
+            $query .= "and award LIKE :term";
+            $term = $this->sanitiseString("%" . $_REQUEST['search'] . "%");
+            $params = ["term" => $term];
+        }
         return ($this->recordset->getJSONRecordSet($query, $params));
     }
 
@@ -180,6 +187,14 @@ class JSONPage
             $term = $this->sanitiseNum($_REQUEST['id']);
             $params = ["term" => $term];
         }
+        elseif (isset($_REQUEST['getsessions'])) {
+
+            $check =  $this->sanitiseString($_REQUEST['getsessions']);
+            if($check == "true"){
+                $query = "SELECT a.name as authorName,s.name as sessionName ,sl.dayString as day, sl.startHour,sl.startMinute,sl.endHour,sl.endMinute, rooms.name as roomName
+                            FROM authors a left join sessions s on a.authorId = s.chairId left join rooms on s.roomId = rooms.roomId left join slots sl on s.slotId = sl.slotId";
+            }
+        }
 
         return ($this->recordset->getJSONRecordSet($query, $params));
     }
@@ -192,40 +207,44 @@ class JSONPage
     private function handleLogin()
     {
 
-        $msg = "Invalid request. Username and password required";
-        $status = 400;
+
         $input = json_decode(file_get_contents("php://input"));
         $token = array();
 
         if (isset($input->email) && isset($input->password)) {
-            $query = "SELECT username,password FROM users WHERE email = :email";
+            $query = "SELECT username,password,admin FROM users WHERE email = :email";
             $email = $this->sanitiseString($input->email);
             $password = $this->sanitiseString($input->password);
             $params = ["email" => $email];
             $res = json_decode($this->recordset->getJSONRecordSet($query, $params), true);
             $passwordFound = ($res['count']) ? $res['data'][0]['password'] : null;
-
+            $adminStatus = $res['data'][0]['admin'];
             if (password_verify($password, $passwordFound)) {
                 $msg = "User authorised. Welcome " . $email;
                 $status = 200;
-                $token = $this->getToken($email,$res['data'][0]['username']);
+                $token = $this->getToken($email, $res['data'][0]['username']);
                 $jwtKey = JWTKEY;
                 $token = JWT::encode($token, $jwtKey);
+                return json_encode(array("status" => $status, "message" => $msg, "token" => $token, "adminStatus" => $adminStatus));
             } else {
                 $msg = "username or password are invalid";
                 $status = 401;
+                return json_encode(array("status" => $status, "message" => $msg, "token" => $token));
             }
+        } else {
+            $msg = "Invalid request. Username and password required";
+            $status = 400;
+            return json_encode(array("status" => $status, "message" => $msg, "token" => $token));
         }
 
-
-        return json_encode(array("status" => $status, "message" => $msg, "token" => $token));
     }
 
-    function getToken($username,$email){
+    function getToken($username, $email)
+    {
         $token['email'] = $email;
         $token['username'] = $username;
         $token['iat'] = time();
-        $token['exp'] = time() + 60*60;;
+        $token['exp'] = time() + 60 * 60;;
         return $token;
     }
 
@@ -252,12 +271,11 @@ class JSONPage
         try {
             $jwtKey = JWTKEY;
             JWT::decode($input->token, $jwtKey, array('HS256'));
-        }
-        catch (UnexpectedValueException $e) {
+        } catch (UnexpectedValueException $e) {
             return json_encode(array("status" => 401, "message" => $e->getMessage()));
         }
 
-        $query  = "UPDATE sessions SET name = :name WHERE sessionId = :sessionId";
+        $query = "UPDATE sessions SET name = :name WHERE sessionId = :sessionId";
         $name = $this->sanitiseString($input->name);
         $Id = $this->sanitiseString($input->sessionId);
 

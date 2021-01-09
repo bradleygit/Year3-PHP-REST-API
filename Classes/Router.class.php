@@ -53,33 +53,53 @@ class Router
     {
         $text = "<p>Welcome to the Documentation page!</p><br>
                 <h2>API Endpoints</h2><br><ul>
+                
                 <div class = 'endpoint'>
                <h3>/api/</h3>
                <div class = 'endpointAdditional'>
                <p>Returns all endpoints available</p>
                </div>
                 </div>
+                
                 <div class = 'endpoint'>
                 <h3>/authors</h3>
                  <div class = 'endpointAdditional'>
-               <p>?search=<div class='endpointExplain'> Search author</div>  </p>
-               <p>?id=<div class='endpointExplain'> Search author ID</div>  </p>
-               </div>
+               <p>?search=<div class='endpointExplain'> Search author</div> </p></div>
+               <div class = 'endpointAdditional'>
+               <p>?id=<div class='endpointExplain'> Search author ID</div> </p> </div>
+               
             </div>
-             <div class = 'endpoint'> <h3>/schedule</h3> <div class = 'endpointAdditional'> ?day= <div class='endpointExplain'>Search by day</div>  </div>
+            
+            
+             <div class = 'endpoint'>
+              <h3>/schedule</h3> 
+              <div class = 'endpointAdditional'>
+               ?day= 
+               <div class='endpointExplain'>Search by day</div>  </div>
                 </div>
+                
+                
                 <div class = 'endpoint'>
                 <h3>/login/</h3>
                  <div class = 'endpointAdditional'>
                  <p class = 'required'> Requires email and password to be posted</p>
                  </div>
                  </div>
+                 
                   <div class = 'endpoint'>
                 <h3>/update/</h3>
                  <div class = 'endpointAdditional'>
                  <p class = 'required'> Requires a valid JSON web token which is issued by logging in</p>
                  </div>
                 </div>
+                
+                 <div class = 'endpoint'>
+                <h3>/chairs</h3>
+                 <div class = 'endpointAdditional'>
+                  ?author=
+               <div class='endpointExplain'>Search by author</div>  </div>
+                 </div>
+                </iv>
                 </div>   
                 </ul>";
 
