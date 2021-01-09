@@ -27,8 +27,8 @@ class JSONPage
             case 'authors':
                 $this->page = $this->json_authors();
                 break;
-            case 'content':
-                $this->page = $this->json_content();
+            case 'awards':
+                $this->page = $this->json_awards();
                 break;
             case 'login':
                 $this->page = $this->handleLogin();
@@ -37,19 +37,16 @@ class JSONPage
                 $this->page = $this->json_update();
                 break;
             case 'rooms':
-                $this->page = $this->json_receive();
+                $this->page = $this->json_rooms();
                 break;
             case 'schedule':
                 $this->page = $this->json_schedule();
                 break;
-            case 'sessions_content':
-                $this->page = $this->json_receive("SELECT sessionId,contentId FROM sessions_content");
-                break;
             case 'sessions':
                 $this->page = $this->json_receive("SELECT sessionId,name,typeId,roomId,chairId,slotId FROM sessions");
                 break;
-            case 'slots':
-                $this->page = $this->json_receive("SELECT slotsId,type,dayInt,dayString,startHour,startMinute,endHour,endMinute FROM slots");
+            case 'chairs':
+                $this->page = $this->json_chairs();
                 break;
             default:
                 $this->page = $this->json_error();
@@ -59,7 +56,7 @@ class JSONPage
 
     private function json_welcome()
     {
-        $msg = array("Message" => "Welcome", "Author" => "Bradley Slater", "EndPoints" => array("authors", "content", "rooms", "session_types", "sessions_content", "sessions", "slots"));
+        $msg = array("Message" => "Welcome", "Author" => "Bradley Slater", "EndPoints" => array("authors", "awards", "login", "update", "rooms", "schedule", "chairs"));
         return json_encode($msg);
     }
 
@@ -70,7 +67,16 @@ class JSONPage
         return json_encode($msg);
     }
 
-
+    public function json_chairs(){
+        $query = "SELECT s.name as SessionName, a.name as AuthorName FROM sessions s INNER JOIN  authors a  ON s.chairId = a.authorId";
+        $params =[];
+        if (isset($_REQUEST['author'])) {
+            $query .= " WHERE a.name like :term";
+            $term = $this->sanitiseString("%" . $_REQUEST['author'] . "%");
+            $params = ["term" => $term];
+        }
+        return ($this->recordset->getJSONRecordSet($query, $params));
+    }
     private function json_receive($query)
     {
         $params = [];
@@ -78,19 +84,20 @@ class JSONPage
     }
 
     public function json_rooms(){
-        $query = "SELECT roomId,name FROM rooms";
+        $query = "SELECT name FROM rooms";
+        $params =[];
         if (isset($_REQUEST['roomid'])) {
-            $query .= " WHERE dayString LIKE :term";
-            $term = $this->sanitiseString("%" . $_REQUEST['day'] . "%");
+            $query .= " WHERE roomId like :term";
+            $term = $this->sanitiseString("%" . $_REQUEST['roomid'] . "%");
             $params = ["term" => $term];
         }
-
+        return ($this->recordset->getJSONRecordSet($query, $params));
     }
     private function json_schedule()
     {
-        $query = "SELECT * FROM slots LEFT JOIN sessions s on slots.slotId = s.slotId";
+        $query = "SELECT slots.type,slots.dayString as day,slots.startHour,slots.startMinute,slots.endHour,slots.endMinute,s.name,a.name as AuthorName
+                        FROM slots  inner JOIN sessions s on slots.slotId = s.slotId inner join authors a on s.chairId = a.authorId";
         $params = [];
-
         if (isset($_REQUEST['day'])) {
             $query .= " WHERE dayString LIKE :term";
             $term = $this->sanitiseString("%" . $_REQUEST['day'] . "%");
@@ -148,20 +155,15 @@ class JSONPage
     }
 
 
-    private function json_content()
+    private function json_awards()
     {
-        $query = "SELECT title,abstract,award FROM content";
+        $query = "SELECT title,abstract,award FROM content WHERE award != ''";
         $params = [];
-        if (isset($_REQUEST['search'])) {
-            $query .= " WHERE name LIKE :term";
-            $term = $this->sanitiseString("%" . $_REQUEST['search'] . "%");
-            $params = ["term" => $term];
-        } elseif (isset($_REQUEST['id'])) {
-            $query .= " WHERE authorId = :term";
-            $term = $this->sanitiseNum($_REQUEST['id']);
-            $params = ["term" => $term];
-        }
-
+         if (isset($_REQUEST['search'])) {
+             $query .= "and award LIKE :term";
+             $term = $this->sanitiseString("%" . $_REQUEST['search'] . "%");
+             $params = ["term" => $term];
+         }
         return ($this->recordset->getJSONRecordSet($query, $params));
     }
 
