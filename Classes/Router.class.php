@@ -24,15 +24,15 @@ class Router
         $path = (empty($pathArr[0])) ? "main" : $pathArr[0];
 
         ($path == "api")
-            ? $this->api_route($pathArr,$recordSet)
+            ? $this->api_route($pathArr, $recordSet)
             : $this->html_route($path);
 
     }
 
-    public function api_route($pathArr,$recordSet)
+    public function api_route($pathArr, $recordSet)
     {
         $this->type = "JSON";
-        $this->page = new JSONPage($pathArr,$recordSet);
+        $this->page = new JSONPage($pathArr, $recordSet);
     }
 
     public function html_route($path)

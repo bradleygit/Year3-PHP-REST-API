@@ -15,6 +15,7 @@ class JSONPage
 
     /**
      * @param $pathArr - an array containing the route information
+     * @param $recordSet - passed in jsonrecordset for DB access
      */
     public function __construct($pathArr,$recordSet)
     {
@@ -69,19 +70,18 @@ class JSONPage
 
     public function json_sessions()
     {
-        $query = "SELECT s.name as sessionName,a.name FROM sessions s inner join authors a on s.chairId = a.authorId ";
-        $params = [];
-        return ($this->recordset->getJSONRecordSet($query, $params));
+        $query = JSONSQLStatements::$getSessions;
+
+        return ($this->recordset->getJSONRecordSet($query, []));
     }
 
     public function json_chairs()
     {
-        $query = "SELECT s.name as SessionName, a.name as AuthorName FROM sessions s INNER JOIN  authors a  ON s.chairId = a.authorId";
+        $query = JSONSQLStatements::$getChairs;
         $params = [];
         if (isset($_REQUEST['author'])) {
             $query .= " WHERE a.name like :term";
-            $term = $this->sanitiseString("%" . $_REQUEST['author'] . "%");
-            $params = ["term" => $term];
+            $params = ["term" => $this->sanitiseString("%" . $_REQUEST['author'] . "%")];
         }
         return ($this->recordset->getJSONRecordSet($query, $params));
     }
@@ -89,7 +89,7 @@ class JSONPage
 
     public function json_rooms()
     {
-        $query = "SELECT name FROM rooms";
+        $query = JSONSQLStatements::$getRooms;
         $params = [];
         if (isset($_REQUEST['roomid'])) {
             $query .= " WHERE roomId like :term";
@@ -101,10 +101,7 @@ class JSONPage
 
     private function json_schedule()
     {
-        $query = "SELECT slots.type,slots.dayString as day,slots.startHour,slots.startMinute,slots.endHour,slots.endMinute,s.name,a.name as authorName,r.name as roomName
-                        FROM slots  inner JOIN sessions s on slots.slotId = s.slotId 
-                            inner join authors a on s.chairId = a.authorId
-                            inner join rooms r on s.roomId = r.roomId"; //lots of joins going on here !
+        $query = JSONSQLStatements::$getSchedule; //lots of joins going on here !
         $params = [];
         if (isset($_REQUEST['day'])) {
             $query .= " WHERE dayString LIKE :term";
@@ -166,7 +163,7 @@ class JSONPage
 
     private function json_awards()
     {
-        $query = "SELECT title,abstract,award FROM content WHERE award != ''";
+        $query = JSONSQLStatements::$getNonEmptyAwards;
         $params = [];
         if (isset($_REQUEST['search'])) {
             $query .= "and award LIKE :term";
@@ -178,7 +175,7 @@ class JSONPage
 
     private function json_authors()
     {
-        $query = "SELECT name FROM authors";
+        $query = JSONSQLStatements::$getAuthors;
         $params = [];
         if (isset($_REQUEST['search'])) {
             $query .= " WHERE name LIKE :term";
@@ -189,8 +186,7 @@ class JSONPage
             $term = $this->sanitiseNum($_REQUEST['id']);
             $params = ["term" => $term];
         } elseif (isset($_REQUEST['getsessions'])) {
-            $query = "SELECT a.name as authorName,s.name as sessionName ,sl.dayString as day, sl.startHour,sl.startMinute,sl.endHour,sl.endMinute, rooms.name as roomName
-                            FROM authors a left join sessions s on a.authorId = s.chairId left join rooms on s.roomId = rooms.roomId left join slots sl on s.slotId = sl.slotId";
+            $query = JSONSQLStatements::$getAuthorsWithSessions;
         }
 
         return ($this->recordset->getJSONRecordSet($query, $params));
@@ -208,7 +204,7 @@ class JSONPage
 
 
         if (isset($input->email) && isset($input->password)) {
-            $query = "SELECT username,password,admin FROM users WHERE email like :email";
+            $query = JSONSQLStatements::$getLogin;
             $email = $this->sanitiseString($input->email);
             $password = $this->sanitiseString($input->password);
             $params = ["email" => $email];
@@ -247,7 +243,6 @@ class JSONPage
     /**
      * json_update
      *
-     * @todo this method can be improved
      */
     private function json_update()
     {
@@ -271,12 +266,10 @@ class JSONPage
             return json_encode(array("status" => 401, "message" => $e->getMessage()));
         }
 
-        $query = "UPDATE sessions SET name = :name WHERE sessionId = :sessionId";
+        $query =JSONSQLStatements::$updateSessions;
         $name = $this->sanitiseString($input->name);
         $Id = $this->sanitiseString($input->sessionId);
-
-        $params = ["name" => $name, "sessionId" => $Id];
-        return $this->recordset->getJSONRecordSet($query, $params);
+        return $this->recordset->getJSONRecordSet($query, ["name" => $name, "sessionId" => $Id]);
     }
 
 //an arbitrary max length of 20 is set
