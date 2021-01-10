@@ -2,7 +2,8 @@
 
  include 'Config/config.php';
 
- $page = new Router();
+ $recordSet = new JSONRecordSet(DB);
+ $page = new Router($recordSet);
  new View($page)
 ?>
 

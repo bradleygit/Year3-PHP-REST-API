@@ -14,7 +14,7 @@ class Router
     /**
      * @param $pageType - can be "main", "documentation" or "about"
      */
-    public function __construct()
+    public function __construct($recordSet)
     {
         $url = $_SERVER["REQUEST_URI"];
         $path = parse_url($url)['path'];
@@ -24,15 +24,15 @@ class Router
         $path = (empty($pathArr[0])) ? "main" : $pathArr[0];
 
         ($path == "api")
-            ? $this->api_route($pathArr)
+            ? $this->api_route($pathArr,$recordSet)
             : $this->html_route($path);
 
     }
 
-    public function api_route($pathArr)
+    public function api_route($pathArr,$recordSet)
     {
         $this->type = "JSON";
-        $this->page = new JSONPage($pathArr);
+        $this->page = new JSONPage($pathArr,$recordSet);
     }
 
     public function html_route($path)

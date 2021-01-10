@@ -16,9 +16,9 @@ class JSONPage
     /**
      * @param $pathArr - an array containing the route information
      */
-    public function __construct($pathArr)
+    public function __construct($pathArr,$recordSet)
     {
-        $this->recordset = new JSONRecordSet(DB);;
+        $this->recordset = $recordSet;
         $path = (empty($pathArr[1])) ? "api" : $pathArr[1];
         switch ($path) {
             case 'api':
