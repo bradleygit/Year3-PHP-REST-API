@@ -12,7 +12,7 @@ class Router
     private $type = "HTML";
 
     /**
-     * @param $pageType - can be "main", "documentation" or "about"
+     * @param $recordSet
      */
     public function __construct($recordSet)
     {

@@ -17,4 +17,5 @@ class  JSONSQLStatements{
     public static $getSchedule = "SELECT slots.type,slots.dayString as day,slots.startHour,slots.startMinute,slots.endHour,slots.endMinute,s.name,a.name as authorName,r.name as roomName
                         FROM slots  inner JOIN sessions s on slots.slotId = s.slotId inner join authors a on s.chairId = a.authorId inner join rooms r on s.roomId = r.roomId";
     public static $getRooms = "SELECT name FROM rooms";
+    public static $getSlots = "SELECT slots.type,slots.dayString as day,slots.startHour,slots.startMinute,slots.endHour,slots.endMinute FROM slots";
 }

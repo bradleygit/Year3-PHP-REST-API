@@ -12,24 +12,20 @@ class JSONPage
 {
     private $page;
     private $recordset;
+    private $welcome = array("Message" => "Welcome", "Author" => "Bradley Slater", "End Points" => array("authors", "awards", "login", "update", "rooms", "schedule", "chairs", "sessions","slots"));
+    private $error = array("status" => "404", "message" => "Error, endpoint not found");
 
     /**
      * @param $pathArr - an array containing the route information
      * @param $recordSet - passed in jsonrecordset for DB access
      */
-    public function __construct($pathArr,$recordSet)
+    public function __construct($pathArr, $recordSet)
     {
         $this->recordset = $recordSet;
         $path = (empty($pathArr[1])) ? "api" : $pathArr[1];
         switch ($path) {
             case 'api':
-                $this->page = $this->json_welcome();
-                break;
-            case 'authors':
-                $this->page = $this->json_authors();
-                break;
-            case 'awards':
-                $this->page = $this->json_awards();
+                $this->page = $this->jsonEncode($this->welcome);
                 break;
             case 'login':
                 $this->page = $this->handleLogin();
@@ -37,172 +33,105 @@ class JSONPage
             case 'update':
                 $this->page = $this->json_update();
                 break;
+            case 'authors':
+                $this->page = $this->build_endPoint(array('search' => "name",'id'=>'authorId','getsessions'=>""), JSONSQLStatements::$getAuthors);
+                break;
+            case 'awards':
+                $this->page = $this->build_endPoint(array('search' => "award"), JSONSQLStatements::$getNonEmptyAwards);
+                break;
             case 'rooms':
-                $this->page = $this->json_rooms();
+                $this->page = $this->build_endPoint(array('roomId' => "roomId"), JSONSQLStatements::$getRooms);;
                 break;
             case 'schedule':
-                $this->page = $this->json_schedule();
+                $this->page = $this->build_endPoint(array('day' => 'dayString','author'=>'authorName','room'=>'roomName'), JSONSQLStatements::$getSchedule);
                 break;
             case 'sessions':
-                $this->page = $this->json_sessions();
+                $this->page = $this->json_NoAdditionalParams(JSONSQLStatements::$getSessions);
                 break;
             case 'chairs':
-                $this->page = $this->json_chairs();
+                $this->page = $this->build_endPoint(array('author' => "a.name"), JSONSQLStatements::$getChairs);;
                 break;
+            case 'slots':
+                $this->page = $this->build_endPoint(array('type' => "type"), JSONSQLStatements::$getSlots);;
+                break;
+
             default:
-                $this->page = $this->json_error();
+                $this->page = $this->jsonEncode($this->error);
                 break;
+
         }
     }
 
-    private function json_welcome()
+    /**
+     * Takes a query and executes it with no parameters
+     */
+    public function json_NoAdditionalParams($query)
     {
-        $msg = array("Message" => "Welcome", "Author" => "Bradley Slater", "EndPoints" => array("authors", "awards", "login", "update", "rooms", "schedule", "chairs"));
-        return json_encode($msg);
-    }
-
-    private function json_error()
-    {
-
-        $msg = array("status" => "404", "message" => "Error, endpoint not found");
-        return json_encode($msg);
-    }
-
-    public function json_sessions()
-    {
-        $query = JSONSQLStatements::$getSessions;
-
         return ($this->recordset->getJSONRecordSet($query, []));
     }
 
-    public function json_chairs()
+
+    /**
+     * this function runs through a map of endpoints and completes any needed sql task
+     *
+     * @param $endPoints - map that is made up of KEY -> desired endpoint eg. /search and VALUE -> the desired field for to look for in database e.g award
+     * @param $query - basic query pulled from JSONSQLStatements class
+     * @return mixed - executed query with data
+     */
+    //
+    //
+    private function build_endPoint($endPoints, $query)
     {
-        $query = JSONSQLStatements::$getChairs;
         $params = [];
-        if (isset($_REQUEST['author'])) {
-            $query .= " WHERE a.name like :term";
-            $params = ["term" => $this->sanitiseString("%" . $_REQUEST['author'] . "%")];
+        foreach ($endPoints as $key => $value) {
+            if (isset($_REQUEST[$key])) {
+                switch ($key) {
+                    case 'search': //simple replace
+                    case 'type':
+                    case 'day':
+                    case 'author':
+                    case 'room':
+                        $query = $this->determineClause($endPoints[$key] . " LIKE :term", $query);
+                        $params["term"] = $this->sanitiseString("%" . $_REQUEST[$key] . "%");
+                        break;
+                    case 'id':
+                    case 'roomId':
+                        $query = $this->determineClause($endPoints[$key] . " = :term", $query);
+                        $params["term"] = $this->sanitiseNum($_REQUEST[$key]);
+                        break;
+                    case 'getsessions':
+                        $query = JSONSQLStatements::$getAuthorsWithSessions;
+                        break;
+                }
+
+                return $this->recordset->getJSONRecordSet($query, $params);
+            }
         }
-        return ($this->recordset->getJSONRecordSet($query, $params));
+        return $this->recordset->getJSONRecordSet($query, []);
     }
 
 
-    public function json_rooms()
+    private function determineClause($conditionToAdd, $query)
     {
-        $query = JSONSQLStatements::$getRooms;
-        $params = [];
-        if (isset($_REQUEST['roomid'])) {
-            $query .= " WHERE roomId like :term";
-            $term = $this->sanitiseString("%" . $_REQUEST['roomid'] . "%");
-            $params = ["term" => $term];
-        }
-        return ($this->recordset->getJSONRecordSet($query, $params));
-    }
-
-    private function json_schedule()
-    {
-        $query = JSONSQLStatements::$getSchedule; //lots of joins going on here !
-        $params = [];
-        if (isset($_REQUEST['day'])) {
-            $query .= " WHERE dayString LIKE :term";
-            $term = $this->sanitiseString("%" . $_REQUEST['day'] . "%");
-            $params = ["term" => $term];
-        } elseif (isset($_REQUEST['type'])) {
-            $query .= " WHERE type = :term";
-            $term = $this->sanitiseString($_REQUEST['type']);
-            $params = ["term" => $term];
-
-        } elseif (isset($_REQUEST['timestart'])) {
-            $query .= " WHERE startHour = :termA and  startMinute = :termB";
-            $numberA = $_REQUEST['timestart'];
-            $numberB = $_REQUEST['timestart'];
-            if (strlen($_REQUEST['timestart']) >= 4) {
-                $numberA = $this->trimNumbers($numberA, true);
-                $numberB = $this->trimNumbers($numberB, false);
-            }
-            $numberATerm = $this->sanitiseString($numberA);
-            $numberBTerm = $this->sanitiseString($numberB);
-            $params = ["termA" => $numberATerm, "termB" => $numberBTerm];
-
-        } elseif (isset($_REQUEST['timeend'])) {
-            $query .= " WHERE endHour = :termA and  endMinute = :termB";
-            $numberA = $_REQUEST['timeend'];
-            $numberB = $_REQUEST['timeend'];
-            if (strlen($_REQUEST['timeend']) >= 4) {
-                $numberA = $this->trimNumbers($numberA, true);
-                $numberB = $this->trimNumbers($numberB, false);
-            }
-
-            $numberATerm = $this->sanitiseString($numberA);
-            $numberBTerm = $this->sanitiseString($numberB);
-            $params = ["termA" => $numberATerm, "termB" => $numberBTerm];
-        }
-
-        return ($this->recordset->getJSONRecordSet($query, $params));
-    }
-
-    private function trimNumbers($numberString, $isHour)
-    {
-        if ($isHour) {
-            $numStringFormat = $numberString[0] . $numberString[1];
-            if ($numStringFormat < 10 && strlen($numStringFormat) >= 2) {
-                return $numStringFormat[1]; //take 0 off start e.g. 01
-            } else {
-                return $numStringFormat;
-            }
+        if (strpos($query, 'WHERE')) {
+            $query .= " AND " . $conditionToAdd;
         } else {
-            $numStringFormat = $numberString[2] . $numberString[3];
-            if ($numStringFormat < 10 && strlen($numStringFormat) >= 2) {
-                return $numStringFormat[1];//take 0 off end eg 01
-            } else {
-                return $numStringFormat;
-            }
+            $query .= " WHERE " . $conditionToAdd;
         }
+        return $query;
     }
 
 
-    private function json_awards()
-    {
-        $query = JSONSQLStatements::$getNonEmptyAwards;
-        $params = [];
-        if (isset($_REQUEST['search'])) {
-            $query .= "and award LIKE :term";
-            $term = $this->sanitiseString("%" . $_REQUEST['search'] . "%");
-            $params = ["term" => $term];
-        }
-        return ($this->recordset->getJSONRecordSet($query, $params));
-    }
-
-    private function json_authors()
-    {
-        $query = JSONSQLStatements::$getAuthors;
-        $params = [];
-        if (isset($_REQUEST['search'])) {
-            $query .= " WHERE name LIKE :term";
-            $term = $this->sanitiseString("%" . $_REQUEST['search'] . "%");
-            $params = ["term" => $term];
-        } elseif (isset($_REQUEST['id'])) {
-            $query .= " WHERE authorId = :term";
-            $term = $this->sanitiseNum($_REQUEST['id']);
-            $params = ["term" => $term];
-        } elseif (isset($_REQUEST['getsessions'])) {
-            $query = JSONSQLStatements::$getAuthorsWithSessions;
-        }
-
-        return ($this->recordset->getJSONRecordSet($query, $params));
-    }
 
     /**
      * json_login
      *
-     * @todo this method can be improved
+     * handles the login section
      */
     private function handleLogin()
     {
         $input = json_decode(file_get_contents("php://input"));
         $token = array();
-
-
         if (isset($input->email) && isset($input->password)) {
             $query = JSONSQLStatements::$getLogin;
             $email = $this->sanitiseString($input->email);
@@ -242,7 +171,7 @@ class JSONPage
 
     /**
      * json_update
-     *
+     * allows updating of sessions with a valid token and sessionId
      */
     private function json_update()
     {
@@ -265,11 +194,8 @@ class JSONPage
         } catch (UnexpectedValueException $e) {
             return json_encode(array("status" => 401, "message" => $e->getMessage()));
         }
-
-        $query =JSONSQLStatements::$updateSessions;
-        $name = $this->sanitiseString($input->name);
-        $Id = $this->sanitiseString($input->sessionId);
-        return $this->recordset->getJSONRecordSet($query, ["name" => $name, "sessionId" => $Id]);
+        
+        return $this->recordset->getJSONRecordSet(JSONSQLStatements::$updateSessions, ["name" => $this->sanitiseString($input->name), "sessionId" => $this->sanitiseString($input->sessionId)]);
     }
 
 //an arbitrary max length of 20 is set
@@ -282,6 +208,11 @@ class JSONPage
     private function sanitiseNum($x)
     {
         return filter_var($x, FILTER_VALIDATE_INT, array("options" => array("min_range" => 0, "max_range" => 100000)));
+    }
+
+    private function jsonEncode($jsonArray)
+    {
+        return json_encode($jsonArray);
     }
 
     public function get_page()

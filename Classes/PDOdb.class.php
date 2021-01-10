@@ -18,7 +18,6 @@ class PDOdb {
      * Return DB connection or create initial connection
      * @return object (PDO)
      * @access public
-     * @todo the catch block should not directly 'echo' output. This will 'cost' you in the coursework.
      */
     public static function getConnection($dbname) {
         if ( !self::$dbConnection ) {
