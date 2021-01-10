@@ -51,34 +51,52 @@ class Router
 
     public function getDocumentation()
     {
-        $text = "<p>Welcome to the Documentation page!</p><br>
+        return "<p>Welcome to the Documentation page!</p><br>
                 <h2>API Endpoints</h2><br><ul>
-                
                 <div class = 'endpoint'>
-               <h3>/api/</h3>
-               <div class = 'endpointAdditional'>
-               <p>Returns all endpoints available</p>
-               </div>
+                <h3>/api/</h3>
+                <div class = 'endpointAdditional'>
+                <p>Returns all endpoints available</p>
                 </div>
-                
+                </div>
                 <div class = 'endpoint'>
                 <h3>/authors</h3>
+                <div class = 'endpointAdditional'>
+                <p>?search=<div class='endpointExplain'> Search author</div> <a href='http://unn-w17004559.newnumyspace.co.uk/KF6012/part1/api/awards?search=honorable'>Example<a/></p></div>
+                <div class = 'endpointAdditional'>
+                <p>?id=<div class='endpointExplain'> Search author ID</div> </p><a href='http://unn-w17004559.newnumyspace.co.uk/KF6012/part1/api/authors?id=8192'>Example<a/> </div>
                  <div class = 'endpointAdditional'>
-               <p>?search=<div class='endpointExplain'> Search author</div> </p></div>
+                <p>?getsessions<div class='endpointExplain'> Returns authors and sessions</div> </p><a href='http://unn-w17004559.newnumyspace.co.uk/KF6012/part1/api/authors?getsession'>Example<a/></div>
+               </div>
+               <div class = 'endpoint'>
+               <h3>/awards</h3> 
                <div class = 'endpointAdditional'>
-               <p>?id=<div class='endpointExplain'> Search author ID</div> </p> </div>
-               
-            </div>
-            
-            
+               ?search= 
+               <div class='endpointExplain'>Search for award</div> <a href='http://unn-w17004559.newnumyspace.co.uk/KF6012/part1/api/awards?search=honorable'>Example<a/></div>
+               </div>
+               <div class = 'endpoint'>
+               <h3>/rooms</h3> 
+               <div class = 'endpointAdditional'>
+               ?roomId= 
+               <div class='endpointExplain'>Find room with a given Id</div> <a href='http://unn-w17004559.newnumyspace.co.uk/KF6012/part1/api/rooms?roomId=10048'>Example<a/></div>
+                </div>
+                <div class = 'endpoint'>
+              <h3>/sessions</h3> 
+              <div class = 'endpointAdditional'>
+               <p>Returns all sessions</p><a href='http://unn-w17004559.newnumyspace.co.uk/KF6012/part1/api/sessions'>Example<a/></div></div>
+                  <div class = 'endpoint'>
+              <h3>/slots</h3> 
+              <div class = 'endpointAdditional'>
+               ?type= 
+               <div class='endpointExplain'>Find slots with a given type</div>  <a href='http://unn-w17004559.newnumyspace.co.uk/KF6012/part1/api/slots?type=session'>Example<a/></div></div>
              <div class = 'endpoint'>
               <h3>/schedule</h3> 
               <div class = 'endpointAdditional'>
                ?day= 
-               <div class='endpointExplain'>Search by day</div>  </div>
+               <div class='endpointExplain'>Search by day</div> <a href='http://unn-w17004559.newnumyspace.co.uk/KF6012/part1/api/schedule?day=monday'>Example<a/> </div>
+               
                 </div>
-                
-                
+
                 <div class = 'endpoint'>
                 <h3>/login/</h3>
                  <div class = 'endpointAdditional'>
@@ -97,21 +115,15 @@ class Router
                 <h3>/chairs</h3>
                  <div class = 'endpointAdditional'>
                   ?author=
-               <div class='endpointExplain'>Search by author</div>  </div>
+               <div class='endpointExplain'>Search by author</div>
+               <a href='http://unn-w17004559.newnumyspace.co.uk/KF6012/part1/api/chairs?author=michael'>Example<a/></div>
                  </div>
-                </iv>
-                </div>   
-                </ul>";
-
-
-        return $text;
+                </div>
+                </div>   ";
     }
 
 
-    public function pageDetermine()
-    {
 
-    }
 
     public function get_type()
     {

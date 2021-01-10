@@ -22,12 +22,12 @@ function errorHandler($errno, $errstr, $errfile, $errline) {
 }
 
 function autoloadClasses($className) {
-    $filename = "classes\\" . strtolower($className) . ".class.php";
+    $filename = "Classes\\" . $className . ".class.php";
     $filename = str_replace('\\', DIRECTORY_SEPARATOR, $filename);
     if (is_readable($filename)) {
         include_once $filename;
     } else {
-        throw new Exception("File not found: " . $className . " (" . $filename . ")");
+        throw new exception("File not found: " . $className . " (" . $filename . ")");
     }
 
 }

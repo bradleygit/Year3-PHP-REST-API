@@ -9,7 +9,7 @@ class  JSONSQLStatements{
     public static $getAuthors ="SELECT name FROM authors" ;
     public static $getAuthorsWithSessions = "SELECT a.name as authorName,s.name as sessionName ,sl.dayString as day, sl.startHour,sl.startMinute,sl.endHour,sl.endMinute, rooms.name as roomName
                             FROM authors a left join sessions s on a.authorId = s.chairId left join rooms on s.roomId = rooms.roomId left join slots sl on s.slotId = sl.slotId";
-    public static $getSessions = "SELECT s.name as sessionName,a.name FROM sessions s inner join authors a on s.chairId = a.authorId";
+    public static $getSessions = "SELECT s.name as sessionName,s.sessionId,a.name FROM sessions s inner join authors a on s.chairId = a.authorId";
     public static $getChairs = "SELECT s.name as SessionName, a.name as AuthorName FROM sessions s INNER JOIN  authors a  ON s.chairId = a.authorId";
     public static $getLogin = "SELECT username,password,admin FROM users WHERE email like :email";
     public static $updateSessions = "UPDATE sessions SET name = :name WHERE sessionId = :sessionId";

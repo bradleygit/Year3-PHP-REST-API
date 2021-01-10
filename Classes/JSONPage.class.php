@@ -194,7 +194,7 @@ class JSONPage
         } catch (UnexpectedValueException $e) {
             return json_encode(array("status" => 401, "message" => $e->getMessage()));
         }
-        
+
         return $this->recordset->getJSONRecordSet(JSONSQLStatements::$updateSessions, ["name" => $this->sanitiseString($input->name), "sessionId" => $this->sanitiseString($input->sessionId)]);
     }
 
