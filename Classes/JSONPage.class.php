@@ -3,7 +3,7 @@
 use Firebase\JWT\JWT;
 
 /**
- * Creates a JSON page based on the parameters
+ * Creates a JSON page based what the user has input into the url
  *
  * @author Bradley Slater
  *
