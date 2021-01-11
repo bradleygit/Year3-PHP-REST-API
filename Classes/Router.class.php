@@ -62,11 +62,9 @@ class Router
                 <div class = 'endpoint'>
                 <h3>/authors</h3>
                 <div class = 'endpointAdditional'>
-                <p>?search=<div class='endpointExplain'> Search author</div> <a href='http://unn-w17004559.newnumyspace.co.uk/KF6012/part1/api/awards?search=honorable'>Example<a/></p></div>
+                <p>?search=<div class='endpointExplain'> Search author</div> <a href='http://unn-w17004559.newnumyspace.co.uk/KF6012/part1/api/authors?search=jennifer'>Example<a/></p></div>
                 <div class = 'endpointAdditional'>
                 <p>?id=<div class='endpointExplain'> Search author ID</div> </p><a href='http://unn-w17004559.newnumyspace.co.uk/KF6012/part1/api/authors?id=8192'>Example<a/> </div>
-                 <div class = 'endpointAdditional'>
-                <p>?getsessions<div class='endpointExplain'> Returns authors and sessions</div> </p><a href='http://unn-w17004559.newnumyspace.co.uk/KF6012/part1/api/authors?getsession'>Example<a/></div>
                </div>
                <div class = 'endpoint'>
                <h3>/awards</h3> 
@@ -94,20 +92,21 @@ class Router
               <div class = 'endpointAdditional'>
                ?day= 
                <div class='endpointExplain'>Search by day</div> <a href='http://unn-w17004559.newnumyspace.co.uk/KF6012/part1/api/schedule?day=monday'>Example<a/> </div>
-               
+              
                 </div>
-
                 <div class = 'endpoint'>
                 <h3>/login/</h3>
                  <div class = 'endpointAdditional'>
+                 Returns a JSON web token upon a successful login with admin privileges
                  <p class = 'required'> Requires email and password to be posted</p>
                  </div>
                  </div>
-                 
+            
                   <div class = 'endpoint'>
                 <h3>/update/</h3>
                  <div class = 'endpointAdditional'>
-                 <p class = 'required'> Requires a valid JSON web token which is issued by logging in</p>
+                 <div class='endpointExplain'>Allows for a session name to be changed with an Id</div><p class = 'required'> Requires a valid JSON web token which is issued by logging in</p>
+                 
                  </div>
                 </div>
                 

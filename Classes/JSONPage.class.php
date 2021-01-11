@@ -12,7 +12,7 @@ class JSONPage
 {
     private $page;
     private $recordset;
-    private $welcome = array("Message" => "Welcome", "Author" => "Bradley Slater", "End Points" => array("authors", "awards", "login", "update", "rooms", "schedule", "chairs", "sessions", "slots"));
+    private $welcome = array("Message" => "Welcome", "Author" => "Bradley Slater", "End Points" => array("api", "authors", "awards", "rooms", "sessions", "schedule", "chairs", "login", "update"));
     private $error = array("status" => "404", "message" => "Error, endpoint not found");
 
     /**
@@ -34,7 +34,7 @@ class JSONPage
                 $this->page = $this->json_update();
                 break;
             case 'authors':
-                $this->page = $this->build_endPoint(array('search' => "name", 'id' => 'authorId'), JSONSQLStatements::$getAuthors);
+                $this->page = $this->build_endPoint(array('search' => "name", 'id' => 'a.authorId'), JSONSQLStatements::$getAuthors);
                 break;
             case 'awards':
                 $this->page = $this->build_endPoint(array('search' => "award"), JSONSQLStatements::$getNonEmptyAwards);
@@ -52,13 +52,7 @@ class JSONPage
                 $this->page = $this->build_endPoint(array('type' => "type"), JSONSQLStatements::$getSlots);;
                 break;
             case 'content':
-                if(isset($_REQUEST['author'])){
-                    $query = JSONSQLStatements::$getAuthorContent;
-                    $query.=" where authors.authorId = :authorId";
-                    $this->page = $this->recordset->getJSONRecordSet($query, ['authorId'=>$this->sanitiseNum($_REQUEST['author'])]);
-                    break;
-                }
-                $this->page = $this->build_endPoint(array('sessionId' => "sessionId"), JSONSQLStatements::$getContent);
+                $this->page = $this->json_content(); //make this a function so its less messy
                 break;
             case 'schedule':
                 $this->page = $this->json_schedule($this->build_endPoint(array('day' => 'dayString', 'author' => 'authorName', 'room' => 'roomName'), JSONSQLStatements::$getSessions));
@@ -73,29 +67,35 @@ class JSONPage
     /**
      * Takes a query and executes it with no parameters
      */
-    public function json_NoAdditionalParams($query)
+    public function json_content()
     {
-        return ($this->recordset->getJSONRecordSet($query, []));
+        if (isset($_REQUEST['author'])) {
+            $query = JSONSQLStatements::$getAuthorContent;
+            $query .= " where authors.authorId = :authorId";
+            return $this->recordset->getJSONRecordSet($query, ['authorId' => $this->sanitiseNum($_REQUEST['author'])]);
+
+        }
+        return $this->page = $this->build_endPoint(array('sessionId' => "sessionId"), JSONSQLStatements::$getContent);
     }
 
     public function json_schedule($json)
     {
-        $data = json_decode($json,true);
+        $data = json_decode($json, true);
         $dataArray = $data['data'];
         $newData = array();
-        foreach ($dataArray as $key => $value){
+        foreach ($dataArray as $key => $value) {
             $sId = $value['sessionId'];
             $query = JSONSQLStatements::$getAuthorWithSessionId;
-            $query.= " WHERE sessions.sessionId  = ".$this->sanitiseNum($sId) ." group by title";
-            $json2 = $this->recordset->getJSONRecordSet($query,[]);
-            $data2 = json_decode($json2,true);
+            $query .= " WHERE sessions.sessionId  = " . $this->sanitiseNum($sId) . " group by title";
+            $json2 = $this->recordset->getJSONRecordSet($query, []);
+            $data2 = json_decode($json2, true);
             $dataArray2 = $data2['data'];
             $value["Authors"] = $dataArray2;
-            array_push($newData,$value);
+            array_push($newData, $value);
 
         }
 
-        return json_encode(array("status"=>"200","count"=>count($newData), "data"=>$newData));
+        return json_encode(array("status" => "200", "count" => count($newData), "data" => $newData));
 
 
     }
