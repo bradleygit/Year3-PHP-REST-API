@@ -12,7 +12,7 @@ class JSONPage
 {
     private $page;
     private $recordset;
-    private $welcome = array("Message" => "Welcome", "Author" => "Bradley Slater", "End Points" => array("authors", "awards", "login", "update", "rooms", "schedule", "chairs", "sessions","slots"));
+    private $welcome = array("Message" => "Welcome", "Author" => "Bradley Slater", "End Points" => array("authors", "awards", "login", "update", "rooms", "schedule", "chairs", "sessions", "slots"));
     private $error = array("status" => "404", "message" => "Error, endpoint not found");
 
     /**
@@ -34,7 +34,7 @@ class JSONPage
                 $this->page = $this->json_update();
                 break;
             case 'authors':
-                $this->page = $this->build_endPoint(array('search' => "name",'id'=>'authorId','getsessions'=>""), JSONSQLStatements::$getAuthors);
+                $this->page = $this->build_endPoint(array('search' => "name", 'id' => 'authorId', 'getsessions' => ""), JSONSQLStatements::$getAuthors);
                 break;
             case 'awards':
                 $this->page = $this->build_endPoint(array('search' => "award"), JSONSQLStatements::$getNonEmptyAwards);
@@ -42,11 +42,8 @@ class JSONPage
             case 'rooms':
                 $this->page = $this->build_endPoint(array('roomId' => "roomId"), JSONSQLStatements::$getRooms);;
                 break;
-            case 'schedule':
-                $this->page = $this->build_endPoint(array('day' => 'dayString','author'=>'authorName','room'=>'roomName'), JSONSQLStatements::$getSchedule);
-                break;
             case 'sessions':
-                $this->page = $this->json_NoAdditionalParams(JSONSQLStatements::$getSessions);
+                $this->page = $this->build_endPoint(array('day' => 'dayString', 'author' => 'authorName', 'room' => 'roomName'), JSONSQLStatements::$getSessions);
                 break;
             case 'chairs':
                 $this->page = $this->build_endPoint(array('author' => "a.name"), JSONSQLStatements::$getChairs);;
@@ -54,7 +51,12 @@ class JSONPage
             case 'slots':
                 $this->page = $this->build_endPoint(array('type' => "type"), JSONSQLStatements::$getSlots);;
                 break;
-
+            case 'content':
+                $this->page = $this->build_endPoint(array('sessionId' => "sessionId"), JSONSQLStatements::$getContent);
+                break;
+            case 'schedule':
+                $this->page = $this->json_schedule($this->build_endPoint(array('day' => 'dayString', 'author' => 'authorName', 'room' => 'roomName'), JSONSQLStatements::$getSessions));
+                break;
             default:
                 $this->page = $this->jsonEncode($this->error);
                 break;
@@ -70,6 +72,27 @@ class JSONPage
         return ($this->recordset->getJSONRecordSet($query, []));
     }
 
+    public function json_schedule($json)
+    {
+        $data = json_decode($json,true);
+        $dataArray = $data['data'];
+        $newData = array();
+        foreach ($dataArray as $key => $value){
+            $sId = $value['sessionId'];
+            $query = JSONSQLStatements::$getAuthorWithSessionId;
+            $query.= " WHERE sessions.sessionId  = ".$this->sanitiseNum($sId) ." group by title";
+            $json2 = $this->recordset->getJSONRecordSet($query,[]);
+            $data2 = json_decode($json2,true);
+            $dataArray2 = $data2['data'];
+            $value["Authors"] = $dataArray2;
+            array_push($newData,$value);
+
+        }
+
+        return json_encode(array("status"=>"200","count"=>count($newData), "data"=>$newData));
+
+
+    }
 
     /**
      * this function runs through a map of endpoints and completes any needed sql task
@@ -96,6 +119,7 @@ class JSONPage
                         break;
                     case 'id':
                     case 'roomId':
+                    case 'sessionId':
                         $query = $this->determineClause($endPoints[$key] . " = :term", $query);
                         $params["term"] = $this->sanitiseNum($_REQUEST[$key]);
                         break;
@@ -120,7 +144,6 @@ class JSONPage
         }
         return $query;
     }
-
 
 
     /**
