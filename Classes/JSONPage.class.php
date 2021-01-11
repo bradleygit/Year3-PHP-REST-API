@@ -34,7 +34,7 @@ class JSONPage
                 $this->page = $this->json_update();
                 break;
             case 'authors':
-                $this->page = $this->build_endPoint(array('search' => "name", 'id' => 'authorId', 'getsessions' => ""), JSONSQLStatements::$getAuthors);
+                $this->page = $this->build_endPoint(array('search' => "name", 'id' => 'authorId'), JSONSQLStatements::$getAuthors);
                 break;
             case 'awards':
                 $this->page = $this->build_endPoint(array('search' => "award"), JSONSQLStatements::$getNonEmptyAwards);
@@ -52,6 +52,12 @@ class JSONPage
                 $this->page = $this->build_endPoint(array('type' => "type"), JSONSQLStatements::$getSlots);;
                 break;
             case 'content':
+                if(isset($_REQUEST['author'])){
+                    $query = JSONSQLStatements::$getAuthorContent;
+                    $query.=" where authors.authorId = :authorId";
+                    $this->page = $this->recordset->getJSONRecordSet($query, ['authorId'=>$this->sanitiseNum($_REQUEST['author'])]);
+                    break;
+                }
                 $this->page = $this->build_endPoint(array('sessionId' => "sessionId"), JSONSQLStatements::$getContent);
                 break;
             case 'schedule':
@@ -120,6 +126,7 @@ class JSONPage
                     case 'id':
                     case 'roomId':
                     case 'sessionId':
+                    case 'authors.authorId':
                         $query = $this->determineClause($endPoints[$key] . " = :term", $query);
                         $params["term"] = $this->sanitiseNum($_REQUEST[$key]);
                         break;
