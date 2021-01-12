@@ -12,7 +12,7 @@ class JSONPage
 {
     private $page;
     private $recordset;
-    private $welcome = array("Message" => "Welcome", "Author" => "Bradley Slater", "End Points" => array("api", "authors", "awards", "rooms", "sessions", "schedule", "chairs", "login", "update"));
+    private $welcome = array("Message" => "Welcome", "Author" => "Bradley Slater", "End Points" => array("api", "authors", "awards", "rooms", "sessions", "schedule","slots", "chairs", "login", "update"));
     private $error = array("status" => "404", "message" => "Error, endpoint not found");
 
     /**
